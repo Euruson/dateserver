@@ -4,12 +4,13 @@
 #include "datetime.h"
 #include <time.h>
 
-int main( int argc , char * * argv )
+int main( int argc , char ** argv )
 {
 	int listenfd , connfd;
 	struct sockaddr_in servaddr;
 	char buff[ MAXLINE ];
 	time_t ticks;
+	int pid;
 
 	listenfd = socket( AF_INET , SOCK_STREAM , 0 );
 
@@ -24,9 +25,17 @@ int main( int argc , char * * argv )
 	for( ; ; )
 	{
 		connfd = accept( listenfd , (struct sockaddr *)NULL , NULL );
-		ticks = time( NULL );
-		snprintf( buff , sizeof( buff ) , "%.24s\r\n" , ctime( &ticks ) );
-		write( connfd , buff , strlen( buff ) );
+		if ((pid = fork()) == 0)
+		{
+			close(listenfd);
+			for (int i = 1; i <= 1000000; ++i)
+			{
+				ticks = time( NULL );
+				snprintf( buff , sizeof( buff ) , "%.24s\r\n" , ctime( &ticks ) );
+				write( connfd , buff , strlen( buff ) );
+			}
+			exit(0);
+		}
 		close( connfd );
 	} 
 }
